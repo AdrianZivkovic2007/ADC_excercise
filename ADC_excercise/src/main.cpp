@@ -6,22 +6,28 @@
 
 #include <Arduino.h>
 
-const int potPin = A0;  // Pin connected to the potentiometer
+const int potPin = A0;
+const unsigned long interval = 500;
+unsigned long previousMillis = 0;
 
 void setup() {
-    Serial.begin(9600); // Start the serial communication
+Serial.begin(115200);
+ADCSRA |= (1 << ADPS2) | (1 << ADPS1);
+ADMUX = (1 << MUX0);
 }
 
 void loop() {
-    int analogValue = analogRead(potPin); // Read raw analog value (0-1023)
-    
-    // Convert to voltage (0 - 5 V)
-    float voltage = analogValue * (5.0 / 1023.0);
+unsigned long currentMillis = millis();
 
-    // Print voltage with two decimal places
-    Serial.print("Potentiometer analog value = ");
-    Serial.print(voltage, 2); // 2 decimal places
-    Serial.println(" V");
+if (currentMillis - previousMillis >= interval) {
+previousMillis = currentMillis;
+ADCSRA |= (1 << ADSC);
+while (ADCSRA & (1 << ADSC));
 
-    delay(500); // Wait for 0.5 seconds
+int adcValue = ADC;
+float voltage = adcValue * (5.0 / 1023.0);
+Serial.print("Potentiometer analog value = ");
+Serial.print(voltage, 2);
+Serial.println(" V");
+}
 }
